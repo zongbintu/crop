@@ -22,6 +22,7 @@ public class CropParams {
 	public static final int DEFAULT_OUTPUT = 300;
 
 	public Uri uri;
+	public Uri cropResult;
 
 	public String type;
 	public String outputFormat;
@@ -47,9 +48,9 @@ public class CropParams {
 		returnData = false;
 		noFaceDetection = true;
 		scaleUpIfNeeded = true;
-		aspectX = DEFAULT_ASPECT;
-		aspectY = DEFAULT_ASPECT;
-		outputX = DEFAULT_OUTPUT;
-		outputY = DEFAULT_OUTPUT;
+		aspectX = 1;
+		aspectY = 1;
+		outputX = 300;
+		outputY = 300;
 	}
 }

@@ -65,10 +65,17 @@ public class CropHelper {
             switch (requestCode) {
                 case REQUEST_CROP:
                     Log.d(TAG, "Photo cropped!");
-                    if (handler.getCropParams().returnData)
+                    if (handler.getCropParams().returnData) {
                         handler.onPhotoCropped(handler.getCropParams().uri);
-                    else
-                        handler.onPhotoCropped(data.getData());
+                    } else {
+                        Uri uri = data.getData();
+                        //4.4以下getData为null，getAction()为该uri.4.4及以上getData为正确uri
+//                        data.getAction();
+                        if (uri == null) {
+                            uri = cropParams.cropResult;
+                        }
+                        handler.onPhotoCropped(uri);
+                    }
                     return;
                 case REQUEST_GALLERY:
                     handler.getCropParams().uri = data.getData();
@@ -112,8 +119,7 @@ public class CropHelper {
     }
 
     public static Intent buildGalleryIntent() {
-        return new Intent(Intent.ACTION_GET_CONTENT).setData(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        return new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
     }
 
     public static Intent buildCaptureIntent(Uri uri) {
@@ -123,9 +129,8 @@ public class CropHelper {
 
     public static Intent buildCropIntent(String action, CropHandler handler) {
         CropParams params = handler.getCropParams();
-        return new Intent(action, null)
+        Intent intent = new Intent(action, null)
                 .setDataAndType(params.uri, params.type)
-                        // .setType(params.type)
                 .putExtra("crop", params.crop)
                 .putExtra("aspectX", params.aspectX)
                 .putExtra("aspectY", params.aspectY)
@@ -133,8 +138,10 @@ public class CropHelper {
                 .putExtra("outputY", params.outputY)
                 .putExtra("return-data", params.returnData)
                 .putExtra("outputFormat", params.outputFormat)
-                .putExtra("noFaceDetection", params.noFaceDetection)
-                .putExtra(MediaStore.EXTRA_OUTPUT, crateUri(handler.getContext()));
+                .putExtra("noFaceDetection", params.noFaceDetection);
+        handler.getCropParams().cropResult = crateUri(handler.getContext());
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, handler.getCropParams().cropResult);
+        return intent;
     }
 
     private static Uri crateUri(final Context context) {

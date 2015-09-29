@@ -34,7 +34,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPhotoCropped(Uri uri) {
-
+        mImageView.setImageURI(uri);
+        cropUris.add(uri);
     }
 
     @Override
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.clean:
                 for (Uri uri : cropUris) {
                     CropHelper.clearCachedCropFile(uri);
-                    Toast.makeText(this,uri.getPath()+" is delete",Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, uri.getPath() + " is delete", Toast.LENGTH_LONG).show();
                 }
                 break;
         }
@@ -82,12 +83,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (requestCode) {
             case CropHelper.REQUEST_CAMERA:
             case CropHelper.REQUEST_GALLERY:
-                CropHelper.handleResult(this, requestCode, resultCode, data);
-                break;
             case CropHelper.REQUEST_CROP:
-                Uri uri = data.getData();
-                mImageView.setImageURI(uri);
-                cropUris.add(uri);
+                CropHelper.handleResult(this, requestCode, resultCode, data);
                 break;
         }
     }
