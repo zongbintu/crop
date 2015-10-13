@@ -38,6 +38,24 @@
     }
 
 
-3.clean croped file
+3.onActivityForResult
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+        switch (requestCode) {
+            case CropHelper.REQUEST_CAMERA:
+            case CropHelper.REQUEST_GALLERY:
+            case CropHelper.REQUEST_CROP:
+                CropHelper.handleResult(this, requestCode, resultCode, data);
+                break;
+        }
+    }
+
+
+4.clean croped file
 
 CropHelper.clearCachedCropFile(uri);
