@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.gallery_not_crop:
                 mCropParams = CropParams.initCropParams();
-                mCropParams.returnData = true;
                 mCropParams.crop = "false";
                 startActivityForResult(CropHelper.buildGalleryIntent(), CropHelper.REQUEST_GALLERY);
                 break;

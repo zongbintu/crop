@@ -1,12 +1,40 @@
-# CropSimple
+# Crop
 
 使用系统自带裁剪，返回Uri。解决4.4以后改变Uri规则兼容问题
 
 # Usage
+   
+   
+###### 1、Using Crop Library in your application
 
-1. new CropParams()
+Add the JitPack repository to your build file
 
-2.implements CropHandler
+Add it in your root build.gradle at the end of repositories:  
+
+`allprojects {     
+    repositories {    
+        ...
+        maven { url "https://jitpack.io" }
+    }
+} `   
+
+Add the dependency
+
+`dependencies {  
+    compile 'com.github.crop:1.1'  
+}`
+   
+###### 2、init CropParams  
+
+裁剪  
+mCropParams = CropParams.initCropParams();
+
+不裁剪  
+mCropParams = CropParams.initCropParams();  
+mCropParams.crop = "false";
+
+
+###### 3、implements CropHandler
 
 
 
@@ -38,7 +66,7 @@
     }
 
 
-3.onActivityForResult
+###### 4、onActivityForResult
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -56,6 +84,6 @@
     }
 
 
-4.clean croped file
+###### 5、clean croped file
 
-CropHelper.clearCachedCropFile(uri);
+`CropHelper.cleanAllCropCache(this);`
