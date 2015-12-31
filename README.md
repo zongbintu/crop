@@ -21,7 +21,7 @@ Add it in your root build.gradle at the end of repositories:
 Add the dependency
 
 `dependencies {  
-    compile 'com.github.crop:1.1'  
+    compile 'com.github.crop:1.11'  
 }`
    
 ###### 2、init CropParams  
