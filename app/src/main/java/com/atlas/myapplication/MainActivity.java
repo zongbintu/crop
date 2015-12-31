@@ -13,13 +13,9 @@ import com.tu.crop.CropHandler;
 import com.tu.crop.CropHelper;
 import com.tu.crop.CropParams;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, CropHandler {
     private CropParams mCropParams;
     private ImageView mImageView;
-    private List<Uri> cropUris = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,12 +26,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.test).setOnClickListener(this);
         findViewById(R.id.gallery).setOnClickListener(this);
         findViewById(R.id.clean).setOnClickListener(this);
+        findViewById(R.id.gallery_not_crop).setOnClickListener(this);
+        findViewById(R.id.capture_not_crop).setOnClickListener(this);
     }
 
     @Override
     public void onPhotoCropped(Uri uri) {
         mImageView.setImageURI(uri);
-        cropUris.add(uri);
+//        mImageView.setImageBitmap(BitmapUtil.compressImage(uri.getPath(),800f,480f,100));
     }
 
     @Override
@@ -62,17 +60,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.test:
-                Intent i = CropHelper.buildCaptureIntent(mCropParams.uri);
-                startActivityForResult(i, CropHelper.REQUEST_CAMERA);
+                mCropParams = CropParams.initCropParams();
+                startActivityForResult(CropHelper.buildCaptureIntent(mCropParams.uri), CropHelper.REQUEST_CAMERA);
                 break;
             case R.id.gallery:
+                mCropParams = CropParams.initCropParams();
                 startActivityForResult(CropHelper.buildGalleryIntent(), CropHelper.REQUEST_GALLERY);
                 break;
+            case R.id.gallery_not_crop:
+                mCropParams = CropParams.initCropParams();
+                mCropParams.returnData = true;
+                mCropParams.crop = "false";
+                startActivityForResult(CropHelper.buildGalleryIntent(), CropHelper.REQUEST_GALLERY);
+                break;
+            case R.id.capture_not_crop:
+                mCropParams = CropParams.initCropParams();
+                mCropParams.crop = "false";
+                startActivityForResult(CropHelper.buildCaptureIntent(mCropParams.uri), CropHelper.REQUEST_CAMERA);
+                break;
             case R.id.clean:
-                for (Uri uri : cropUris) {
-                    CropHelper.clearCachedCropFile(uri);
-                    Toast.makeText(this, uri.getPath() + " is delete", Toast.LENGTH_LONG).show();
-                }
+                boolean flag = CropHelper.cleanAllCropCache(this);
+                Toast.makeText(this, "delete:" + flag, Toast.LENGTH_LONG).show();
                 break;
         }
     }
@@ -91,8 +99,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
-        for (Uri uri : cropUris)
-            CropHelper.clearCachedCropFile(uri);
+        CropHelper.cleanAllCropCache(this);
         super.onDestroy();
     }
 }

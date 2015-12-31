@@ -14,21 +14,15 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Date;
 
-/**
- * Created with Android Studio. User: ryan@xisue.com Date: 10/1/14 Time: 11:08
- * AM Desc: CropHelper Revision: - 10:00 2014/10/03 Basic utils. - 11:30
- * 2014/10/03 Add static methods for generating crop intents. - 15:00 2014/10/03
- * Finish the logic of handling crop intents. - 12:20 2014/10/04 Add
- * "scaleUpIfNeeded" crop options for scaling up cropped images if the size is
- * too small.
- */
 public class CropHelper {
 
     public static final String TAG = "CropHelper";
@@ -61,6 +55,7 @@ public class CropHelper {
                 handler.onCropFailed("CropHandler's params MUST NOT be null!");
                 return;
             }
+            final Activity context = handler.getContext();
             Intent intent = null;
             switch (requestCode) {
                 case REQUEST_CROP:
@@ -79,14 +74,44 @@ public class CropHelper {
                     return;
                 case REQUEST_GALLERY:
                     handler.getCropParams().uri = data.getData();
-                    handler.getCropParams().uri = uriFormat(handler);
-                    intent = buildCropFromUriIntent(handler);
+                    if ("false".equals(handler.getCropParams().crop)) {
+//                        handler.onPhotoCropped(uriFormat(handler.getContext(), handler.getCropParams().uri));
+                        Uri uri = uriFormat(context, handler.getCropParams().uri);
+                        if (!new File(uri.getPath()).exists()) {
+                            handler.onCropFailed(context.getString(R.string.msg_error_file_not_found));
+                            return;
+                        } else {
+                            try {
+                                String fileName = BitmapUtil.saveFile(context, BitmapUtil.compressImage(uri.getPath(), 800f, 480f, 100));
+                                uri = Uri.fromFile(new File(fileName));
+                            } catch (IOException e) {
+                                Log.e(TAG, "save bitmap file", e);
+                            }
+                        }
+                        handler.onPhotoCropped(uri);
+                        return;
+                    } else {
+                        if (isKitKat())
+                            handler.getCropParams().uri = uriFormat(context, handler.getCropParams().uri);
+                        intent = buildCropFromUriIntent(handler);
+                    }
                     break;
                 case REQUEST_CAMERA:
+                    if ("false".equals(handler.getCropParams().crop)) {
+//                        handler.onPhotoCropped(uriFormat(handler.getContext(), handler.getCropParams().uri));
+                        Uri uri = uriFormat(context, handler.getCropParams().uri);
+                        try {
+                            String fileName = BitmapUtil.saveFile(context, BitmapUtil.compressImage(uri.getPath(), 800f, 480f, 100));
+                            uri = Uri.fromFile(new File(fileName));
+                        } catch (IOException e) {
+                            Log.e(TAG, "save bitmap file", e);
+                        }
+                        handler.onPhotoCropped(uri);
+                        return;
+                    }
                     intent = buildCropFromUriIntent(handler);
                     break;
             }
-            Activity context = handler.getContext();
             if (context != null) {
                 context.startActivityForResult(intent, REQUEST_CROP);
             } else {
@@ -114,6 +139,45 @@ public class CropHelper {
         return false;
     }
 
+    /**
+     * 删除所有缓存crop文件
+     *
+     * @param context
+     * @return
+     */
+    public static boolean cleanAllCropCache(Context context) {
+        final String dir = getCropCacheDir(context);
+        File file = new File(dir);
+        boolean flag = false;
+        if (file.exists())
+            flag = deleteDirectory(file);
+        else
+            flag = true;
+        return flag;
+    }
+
+    private static boolean deleteDirectory(File dir) {
+        if (!dir.exists() && !dir.isDirectory()) {
+            return false;
+        }
+        File[] files = dir.listFiles();
+        boolean flag = true;
+        for (File file : files) {
+            if (file.isFile())
+                flag = file.delete();
+            else
+                flag = deleteDirectory(file);
+            if (!flag) break;
+        }
+        if (!flag) return false;
+        //删除当前目录
+        if (dir.delete()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public static Intent buildCropFromUriIntent(CropHandler handler) {
         return buildCropIntent("com.android.camera.action.CROP", handler);
     }
@@ -139,18 +203,38 @@ public class CropHelper {
                 .putExtra("return-data", params.returnData)
                 .putExtra("outputFormat", params.outputFormat)
                 .putExtra("noFaceDetection", params.noFaceDetection);
-        handler.getCropParams().cropResult = crateUri(handler.getContext());
+        handler.getCropParams().cropResult = Uri.fromFile(new File(getCropFilePath(handler.getContext())));
         intent.putExtra(MediaStore.EXTRA_OUTPUT, handler.getCropParams().cropResult);
         return intent;
     }
 
-    private static Uri crateUri(final Context context) {
+    /**
+     * 生成Crop文件路径
+     *
+     * @param context
+     * @return
+     */
+    public static String getCropFilePath(Context context) {
+        final String dir = getCropCacheDir(context);
+        File file = new File(dir);
+        if (!file.isDirectory() && !file.exists())
+            file.mkdirs();
+        String path = dir + new Date().getTime() + ".jpg";
+        file = null;
+        return path;
+    }
+
+    /**
+     * 获取crop缓存路径
+     *
+     * @param context
+     * @return
+     */
+    private static String getCropCacheDir(Context context) {
         File file = context.getExternalCacheDir();
         if (file == null)
             file = context.getCacheDir();
-        String path = file.getPath() + File.separatorChar + new Date().getTime() + ".jpg";
-        file = null;
-        return Uri.fromFile(new File(path));
+        return file.getPath() + File.separatorChar + "crop" + File.separator;
     }
 
     /**
@@ -194,20 +278,22 @@ public class CropHelper {
         return bitmap;
     }
 
-    public static Uri uriFormat(CropHandler handler) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            String url = getPath(handler.getContext(), handler.getCropParams().uri);
-            return Uri.fromFile(new File(url));
-        }
-        return handler.getCropParams().uri;
+    /**
+     * 版本是否大于等于KitKat
+     *
+     * @return
+     */
+    public static boolean isKitKat() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 
     //以下是关键，原本uri返回的是file:///...来着的，android4.4返回的是content:///...
     @SuppressLint("NewApi")
-    public static String getPath(final Context context, final Uri uri) {
+    public static Uri uriFormat(final Context context, final Uri uri) {
 
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+        final boolean isKitKat = isKitKat();
 
+        String path = null;
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
@@ -217,7 +303,7 @@ public class CropHelper {
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                    path = Environment.getExternalStorageDirectory() + "/" + split[1];
                 }
 
             }
@@ -227,7 +313,7 @@ public class CropHelper {
                 final Uri contentUri = ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
 
-                return getDataColumn(context, contentUri, null, null);
+                path = getDataColumn(context, contentUri, null, null);
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
@@ -249,23 +335,33 @@ public class CropHelper {
                         split[1]
                 };
 
-                return getDataColumn(context, contentUri, selection, selectionArgs);
+                path = getDataColumn(context, contentUri, selection, selectionArgs);
             }
         }
         // MediaStore (and general)
         else if ("content".equalsIgnoreCase(uri.getScheme())) {
             // Return the remote address
             if (isGooglePhotosUri(uri))
-                return uri.getLastPathSegment();
+                path = uri.getLastPathSegment();
 
-            return getDataColumn(context, uri, null, null);
+            path = getDataColumn(context, uri, null, null);
         }
         // File
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
+            path = uri.getPath();
         }
-
-        return null;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            String url = getPath(handler.getContext(), handler.getCropParams().uri);
+//            return Uri.fromFile(new File(url));
+//        }
+        File file = new File(path);
+        if (!TextUtils.isEmpty(path) && file.exists())
+            if (isKitKat)
+                return Uri.fromFile(file);
+            else
+                return Uri.parse(path);
+        else
+            return uri;
     }
 
     /**

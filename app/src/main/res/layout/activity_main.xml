@@ -1,28 +1,53 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layout_margin="@dimen/activity_horizontal_margin"
-    tools:context=".MainActivity">
-    <Button
-        android:id="@+id/test"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="capture" />
-    <Button
-        android:id="@+id/gallery"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="gallery" />
-    <Button
-        android:id="@+id/clean"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="clean crop" />
-    <ImageView
-        android:id="@+id/imageview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    android:orientation="vertical">
 
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="capture" />
+
+        <Button
+            android:id="@+id/gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:text="gallery" />
+
+        <Button
+            android:id="@+id/gallery_not_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:text="gallery not crop" />
+        <Button
+            android:id="@+id/capture_not_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:text="capture not crop" />
+
+        <Button
+            android:id="@+id/clean"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:text="clean all crop cache" />
+
+        <ImageView
+            android:id="@+id/imageview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"/>
+
+    </LinearLayout>
+</ScrollView>
