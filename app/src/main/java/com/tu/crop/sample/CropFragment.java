@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 import com.tu.crop.CropHandler;
@@ -16,6 +17,7 @@ import com.tu.crop.CropParams;
 public class CropFragment extends Fragment implements View.OnClickListener, CropHandler {
   private CropParams mCropParams;
   private ImageView mImageView;
+  private Button containerButton;
 
   public CropFragment() {
     // Required empty public constructor
@@ -34,13 +36,17 @@ public class CropFragment extends Fragment implements View.OnClickListener, Crop
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     // Inflate the layout for this fragment
-    View rootView = inflater.inflate(R.layout.fragment_crop, container, false);
+    View rootView = inflater.inflate(R.layout.crop_layout, container, false);
     mImageView = (ImageView) rootView.findViewById(R.id.imageview);
     rootView.findViewById(R.id.camera).setOnClickListener(this);
     rootView.findViewById(R.id.gallery).setOnClickListener(this);
     rootView.findViewById(R.id.clean).setOnClickListener(this);
     rootView.findViewById(R.id.gallery_not_crop).setOnClickListener(this);
     rootView.findViewById(R.id.capture_not_crop).setOnClickListener(this);
+
+    containerButton = (Button) rootView.findViewById(R.id.change_container);
+    containerButton.setText(R.string.to_activity);
+    containerButton.setOnClickListener(this);
     return rootView;
   }
 
@@ -85,6 +91,9 @@ public class CropFragment extends Fragment implements View.OnClickListener, Crop
       case R.id.clean:
         boolean flag = CropHelper.cleanAllCropCache(getContext());
         Toast.makeText(getContext(), "delete:" + flag, Toast.LENGTH_SHORT).show();
+        break;
+      case R.id.change_container:
+        startActivity(new Intent(getActivity(),MainActivity.class));
         break;
     }
   }
