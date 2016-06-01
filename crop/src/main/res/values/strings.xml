@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">Crop</string>
     <string name="msg_error_file_not_found">文件不存在</string>
 </resources>

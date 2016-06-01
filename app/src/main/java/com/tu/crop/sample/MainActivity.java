@@ -1,4 +1,4 @@
-package com.atlas.myapplication;
+package com.tu.crop.sample;
 
 import android.app.Activity;
 import android.content.Intent;
